@@ -12,6 +12,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [backendStatus, setBackendStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking')
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
 
   useEffect(() => {
     const checkBackendStatus = async () => {
@@ -32,16 +34,34 @@ export default function Dashboard() {
     }
 
     checkBackendStatus()
-    
+
     // Poll backend status every 10 seconds
     const interval = setInterval(checkBackendStatus, 10000)
     return () => clearInterval(interval)
   }, [dashboardData?.overview?.total_equipment])
 
-  // Initial data loading
+  // Initial data loading and auto-refresh
   useEffect(() => {
     loadDashboardData()
-  }, [])
+
+    // Set up auto-refresh every 30 seconds if enabled
+    let refreshInterval: NodeJS.Timeout | null = null
+
+    if (autoRefresh) {
+      refreshInterval = setInterval(() => {
+        // Only refresh if backend is connected and we're not currently loading
+        if (backendStatus === 'connected' && !loading) {
+          loadDashboardData()
+        }
+      }, 30000)
+    }
+
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval)
+      }
+    }
+  }, [autoRefresh, backendStatus, loading])
 
   const checkBackendStatus = async () => {
     try {
@@ -67,11 +87,14 @@ export default function Dashboard() {
       if (response.ok) {
         const data = await response.json()
         setDashboardData(data)
+        setLastUpdated(new Date())
+        setBackendStatus('connected')
       } else {
         throw new Error('Backend not accessible')
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error)
+      setBackendStatus('disconnected')
       // Show empty state when backend is offline
       setDashboardData({
         overview: {
@@ -130,18 +153,32 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500">
                   {new Date().toLocaleTimeString()}
                 </p>
+                {lastUpdated && (
+                  <p className="text-xs text-gray-400">
+                    Last updated: {lastUpdated.toLocaleTimeString()}
+                  </p>
+                )}
               </div>
               <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  backendStatus === 'connected' ? 'bg-green-500' : 
-                  backendStatus === 'disconnected' ? 'bg-red-500' : 'bg-yellow-500'
-                }`}></div>
-                <span className={`text-xs font-medium ${
-                  backendStatus === 'connected' ? 'text-green-600' : 
-                  backendStatus === 'disconnected' ? 'text-red-600' : 'text-yellow-600'
-                }`}>
-                  {backendStatus === 'connected' ? 'Backend Connected' : 
-                   backendStatus === 'disconnected' ? 'Backend Offline' : 'Checking...'}
+                <label className="flex items-center space-x-1 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={autoRefresh}
+                    onChange={(e) => setAutoRefresh(e.target.checked)}
+                    className="w-3 h-3 text-blue-600 rounded"
+                  />
+                  <span>Auto-refresh (30s)</span>
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${backendStatus === 'connected' ? 'bg-green-500' :
+                    backendStatus === 'disconnected' ? 'bg-red-500' : 'bg-yellow-500'
+                  }`}></div>
+                <span className={`text-xs font-medium ${backendStatus === 'connected' ? 'text-green-600' :
+                    backendStatus === 'disconnected' ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                  {backendStatus === 'connected' ? 'Backend Connected' :
+                    backendStatus === 'disconnected' ? 'Backend Offline' : 'Checking...'}
                 </span>
                 <button
                   onClick={() => {
@@ -181,11 +218,10 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                     ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <span className="inline-block w-5 h-5 mr-2">{tab.icon}</span>
                 {tab.name}
@@ -212,7 +248,7 @@ export default function Dashboard() {
                 </h3>
                 <div className="mt-2 text-sm text-yellow-700">
                   <p>
-                    The backend server is currently offline. You're viewing cached data. 
+                    The backend server is currently offline. You're viewing cached data.
                     To see real-time data, please start the backend server:
                   </p>
                   <div className="mt-2 font-mono text-xs bg-yellow-100 p-2 rounded">
@@ -303,7 +339,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 Anomaly Detection & Alerts
               </h2>
-              <AnomalyAlerts showAll={true} />
+              <AnomalyAlerts />
             </div>
           </div>
         )}
@@ -325,7 +361,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 Equipment Analytics
               </h2>
-              <EquipmentStats showDetailed={true} />
+              <EquipmentStats />
             </div>
           </div>
         )}

@@ -12,6 +12,15 @@ class Equipment(Base):
     id = Column(Integer, primary_key=True, index=True)
     equipment_id = Column(String, unique=True, index=True, nullable=False)  # EQX1001, etc.
     type = Column(String, nullable=False)  # Excavator, Crane, Bulldozer, etc.
+    site_id = Column(String, nullable=True)  # S001, S002, etc. (changed from user_id)
+    check_out_date = Column(String, nullable=True)  # Date string from CSV
+    check_in_date = Column(String, nullable=True)   # Date string from CSV
+    engine_hours_per_day = Column(Float, default=0.0)
+    idle_hours_per_day = Column(Float, default=0.0)
+    operating_days = Column(Integer, default=0)
+    last_operator_id = Column(String, nullable=True)  # OP401, OP402, etc.
+    
+    # Additional fields for equipment management
     model = Column(String)
     manufacturer = Column(String)
     year = Column(Integer)
