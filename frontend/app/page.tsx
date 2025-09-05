@@ -19,7 +19,7 @@ export default function Dashboard() {
   useEffect(() => {
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch('http://localhost:8000/')
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/`)
         if (response.ok) {
           setBackendStatus('connected')
           // If backend just came online, refresh dashboard data
@@ -79,7 +79,7 @@ export default function Dashboard() {
 
   const checkBackendStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/`)
       if (response.ok) {
         setBackendStatus('connected')
         // If backend just came online, refresh dashboard data
@@ -98,8 +98,8 @@ export default function Dashboard() {
     try {
       // Fetch dashboard data and equipment data in parallel
       const [dashboardResponse, equipmentResponse] = await Promise.all([
-        fetch('http://localhost:8000/dashboard'),
-        fetch('http://localhost:8000/equipment/')
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/dashboard`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/equipment/`)
       ])
       
       if (dashboardResponse.ok && equipmentResponse.ok) {

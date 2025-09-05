@@ -48,7 +48,7 @@ export default function DemandForecast({ daysAhead }: DemandForecastProps) {
     setError(null)
     
     try {
-      let url = 'http://localhost:8000/ml/demand-forecast'
+      let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/ml/demand-forecast`
       const params = new URLSearchParams()
       
       if (selectedEquipment !== 'all') {

@@ -47,7 +47,7 @@ export default function ViewEquipmentModal({ isOpen, onClose, equipmentId }: Vie
         setError(null)
 
         try {
-            const response = await fetch(`http://localhost:8000/equipment/${equipmentId}`)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/equipment/${equipmentId}`)
             if (!response.ok) {
                 throw new Error('Failed to fetch equipment details')
             }

@@ -3,8 +3,6 @@ const nextConfig = {
   experimental: {
     appDir: true,
   },
-  output: 'export',
-  trailingSlash: true,
   images: {
     unoptimized: true
   },
@@ -14,7 +12,7 @@ const nextConfig = {
       return [
         {
           source: '/api/:path*',
-          destination: 'http://localhost:8000/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/:path*`,
         },
       ]
     }

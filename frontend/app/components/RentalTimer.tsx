@@ -49,7 +49,7 @@ export default function RentalTimer({
   const fetchTimerData = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:8000/rentals/${rentalId}/timer`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/rentals/${rentalId}/timer`)
       if (response.ok) {
         const data = await response.json()
         setTimerData(data)
@@ -128,7 +128,7 @@ export default function RentalTimer({
     if (!onExtendRental) return
     
     try {
-      const response = await fetch(`http://localhost:8000/rentals/${rentalId}/extend`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/rentals/${rentalId}/extend`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export default function RentalTimer({
     if (!onSendReminder) return
     
     try {
-      const response = await fetch(`http://localhost:8000/rentals/${rentalId}/send-reminder`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/rentals/${rentalId}/send-reminder`, {
         method: 'POST',
       })
       

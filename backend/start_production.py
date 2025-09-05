@@ -15,7 +15,7 @@ sys.path.insert(0, str(app_dir))
 
 from app.database import engine
 from app import models
-from app.populate_database import populate_database
+from app.populate_database import clear_and_populate_database
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +29,7 @@ def initialize_database():
         logger.info("Database tables created successfully")
         
         logger.info("Populating database with sample data...")
-        populate_database()
+        clear_and_populate_database()
         logger.info("Database populated successfully")
         
     except Exception as e:

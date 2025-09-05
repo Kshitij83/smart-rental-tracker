@@ -1,9 +1,9 @@
-import { ReactElement } from 'react'
+import { ReactElement, ComponentType } from 'react'
 
 interface DashboardCardProps {
   title: string
   value: string | number
-  icon: ReactElement | string
+  icon: ComponentType<{ className?: string }> | string
   trend?: string
   trendDirection?: 'up' | 'down'
   color?: 'blue' | 'green' | 'red' | 'yellow'
@@ -30,7 +30,7 @@ export default function DashboardCard({
       return <span className="text-2xl">{icon}</span>
     } else {
       // Handle React component
-      const IconComponent = icon as ReactElement
+      const IconComponent = icon as ComponentType<{ className?: string }>
       return <IconComponent className="w-6 h-6" />
     }
   }

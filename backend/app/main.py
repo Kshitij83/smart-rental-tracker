@@ -37,13 +37,19 @@ async def shutdown_event():
     logger.info("✅ System stopped")
 
 # Add CORS middleware
+allowed_origins = [
+    "http://localhost:3000",  # Next.js default port
+    "https://smart-rental-tracker-frontend.onrender.com",  # Render frontend
+]
+
+# Add environment variable origins
+env_origins = os.getenv("ALLOWED_ORIGINS", "")
+if env_origins:
+    allowed_origins.extend([origin.strip() for origin in env_origins.split(",")])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js default port
-        "https://smart-rental-tracker-frontend.onrender.com",  # Render frontend
-        os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

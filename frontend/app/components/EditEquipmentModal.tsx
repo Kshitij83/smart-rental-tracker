@@ -63,7 +63,7 @@ export default function EditEquipmentModal({ isOpen, onClose, equipmentId, onSuc
         setError(null)
 
         try {
-            const response = await fetch(`http://localhost:8000/equipment/${equipmentId}`)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/equipment/${equipmentId}`)
             if (!response.ok) {
                 throw new Error('Failed to fetch equipment details')
             }
@@ -117,7 +117,7 @@ export default function EditEquipmentModal({ isOpen, onClose, equipmentId, onSuc
             if (formData.site_id) updateData.site_id = formData.site_id
             if (formData.check_out_date) updateData.check_out_date = formData.check_out_date
 
-            const response = await fetch(`http://localhost:8000/equipment/${equipmentId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/equipment/${equipmentId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
