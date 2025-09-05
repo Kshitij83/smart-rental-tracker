@@ -40,6 +40,9 @@ async def shutdown_event():
 allowed_origins = [
     "http://localhost:3000",  # Next.js default port
     "https://smart-rental-tracker-frontend.onrender.com",  # Render frontend
+    "https://smart-rental-tracker.vercel.app",  # Vercel frontend
+    "https://smart-rental-tracker-git-main-vanshsehgal08s-projects.vercel.app",  # Vercel preview
+    "https://smart-rental-tracker-con1tncjq-vanshsehgal08s-projects.vercel.app",  # Vercel preview
 ]
 
 # Add environment variable origins
