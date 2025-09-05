@@ -13,7 +13,6 @@ import {
   CheckCircle, 
   Calendar, 
   TrendingUp,
-  DollarSign,
   Wrench,
   Users,
   Activity,
@@ -155,11 +154,6 @@ export default function RentalDashboard({ dashboardData }: Props) {
   // Calculate derived metrics from dashboard data with real-time updates
   const getActiveRentalsCount = useCallback(() => dashboardData?.overview?.active_rentals || 0, [dashboardData])
   const getOverdueCount = useCallback(() => dashboardData?.anomalies?.summary?.total_anomalies || 0, [dashboardData])
-  const getMonthlyRevenue = useCallback(() => {
-    const totalEquipment = dashboardData?.overview?.total_equipment || 0
-    const avgUtilization = dashboardData?.overview?.utilization_rate || 0
-    return Math.round(totalEquipment * (avgUtilization / 100) * 500)
-  }, [dashboardData])
   const getUtilizationRate = useCallback(() => dashboardData?.overview?.utilization_rate || 0, [dashboardData])
 
   // Dynamic data filtering and manipulation
@@ -1562,22 +1556,6 @@ export default function RentalDashboard({ dashboardData }: Props) {
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-lg transition-all cursor-pointer group">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 group-hover:text-blue-600 transition-colors">
-                  ${getMonthlyRevenue().toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Estimated from utilization</p>
-              </div>
-              <div className="p-3 rounded-full text-blue-600 bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                <DollarSign className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
         
         <Card className="hover:shadow-lg transition-all cursor-pointer group" onClick={() => setActiveTab('available')}>
           <CardContent className="p-4">
