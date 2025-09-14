@@ -7,7 +7,6 @@ import AnomalyAlerts from './components/AnomalyAlerts'
 import DemandForecast from './components/DemandForecast'
 import EquipmentStats from './components/EquipmentStats'
 import RentalDashboard from './components/RentalDashboard'
-import { ChevronDown, Menu, X } from 'lucide-react'
 
 export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null)
@@ -16,7 +15,6 @@ export default function Dashboard() {
   const [backendStatus, setBackendStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const checkBackendStatus = async () => {
@@ -79,23 +77,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (mobileMenuOpen) {
-        const target = event.target as Element
-        if (!target.closest('nav')) {
-          setMobileMenuOpen(false)
-        }
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [mobileMenuOpen])
-
   const checkBackendStatus = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/`)
@@ -115,21 +96,11 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Add timeout to prevent infinite loading
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-      
       // Fetch dashboard data and equipment data in parallel
       const [dashboardResponse, equipmentResponse] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/dashboard`, {
-          signal: controller.signal
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/equipment/`, {
-          signal: controller.signal
-        })
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/dashboard`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/equipment/`)
       ])
-      
-      clearTimeout(timeoutId)
       
       if (dashboardResponse.ok && equipmentResponse.ok) {
         const dashboardData = await dashboardResponse.json()
@@ -166,18 +137,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-6">
-            <span className="text-white font-bold text-xl">SRT</span>
-          </div>
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Loading Smart Rental Tracker...</h2>
-          <p className="text-gray-600 mb-4">Connecting to backend server</p>
-          <div className="text-sm text-gray-500">
-            <p>If this takes too long, the backend server might not be running.</p>
-            <p className="mt-2">Please start the backend with: <code className="bg-gray-100 px-2 py-1 rounded text-xs">cd backend && python -m uvicorn app.main:app --reload</code></p>
-          </div>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading Smart Rental Tracker...</p>
         </div>
       </div>
     )
@@ -351,85 +314,32 @@ export default function Dashboard() {
       {/* Navigation Tabs */}
       <nav className="bg-white/60 backdrop-blur-sm border-b border-gray-200/50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          {/* Mobile Navigation - Minimized */}
-          <div className="lg:hidden">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-                  <span className="text-white font-bold text-sm">SRT</span>
-                </div>
-                <span className="font-bold text-gray-900 text-sm">Smart Rental Tracker</span>
-              </div>
-              
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <Menu className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
-            </div>
-            
-            {/* Mobile Dropdown Menu */}
-            {mobileMenuOpen && (
-              <div className="absolute left-0 right-0 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-lg z-50">
-                <div className="max-w-7xl mx-auto px-2 py-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveTab(tab.id)
-                          setMobileMenuOpen(false)
-                        }}
-                        className={`flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 ${
-                          activeTab === tab.id
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
-                        }`}
-                      >
-                        <span className="text-lg">{tab.icon}</span>
-                        <span className="font-semibold text-sm">{tab.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Desktop Navigation - Full */}
-          <div className="hidden lg:block">
-            <div className="overflow-x-auto">
-              <div className="flex space-x-4 min-w-max py-2">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative py-4 px-6 font-medium text-sm whitespace-nowrap flex items-center rounded-xl transition-all duration-200 group ${
-                      activeTab === tab.id
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 hover:shadow-md'
-                    }`}
-                  >
-                    <span className={`inline-block w-5 h-5 mr-2 text-sm transition-transform duration-200 ${
-                      activeTab === tab.id ? 'scale-110' : 'group-hover:scale-105'
-                    }`}>
-                      {tab.icon}
-                    </span>
-                    <span className="font-semibold">{tab.name}</span>
-                    
-                    {/* Active indicator */}
-                    {activeTab === tab.id && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
-                    )}
-                  </button>
-                ))}
-              </div>
+          <div className="overflow-x-auto">
+            <div className="flex space-x-1 sm:space-x-2 lg:space-x-4 min-w-max py-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative py-3 sm:py-4 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap flex items-center rounded-xl transition-all duration-200 group ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 hover:shadow-md'
+                  }`}
+                >
+                  <span className={`inline-block w-4 h-4 sm:w-5 sm:h-5 mr-2 text-xs sm:text-sm transition-transform duration-200 ${
+                    activeTab === tab.id ? 'scale-110' : 'group-hover:scale-105'
+                  }`}>
+                    {tab.icon}
+                  </span>
+                  <span className="hidden sm:inline font-semibold">{tab.name}</span>
+                  <span className="sm:hidden font-semibold">{tab.name.split(' ')[0]}</span>
+                  
+                  {/* Active indicator */}
+                  {activeTab === tab.id && (
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         </div>
