@@ -911,8 +911,8 @@ export default function RentalDashboard({ dashboardData }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
     <div className="space-y-6">
       {/* Simple Centered Notification */}
       {showAlert && (
@@ -987,8 +987,8 @@ export default function RentalDashboard({ dashboardData }: Props) {
 
       {/* View Equipment Modal */}
       {showViewModal && selectedEquipment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Equipment Details</h3>
               <button
@@ -999,7 +999,7 @@ export default function RentalDashboard({ dashboardData }: Props) {
               </button>
             </div>
             
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Equipment ID</label>
                 <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{selectedEquipment.equipment_id}</p>
@@ -1096,8 +1096,8 @@ export default function RentalDashboard({ dashboardData }: Props) {
 
       {/* Add Equipment Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-medium">Add New Equipment</h3>
               <button
@@ -1108,7 +1108,7 @@ export default function RentalDashboard({ dashboardData }: Props) {
               </button>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Equipment ID *</label>
                 <input
@@ -1385,8 +1385,8 @@ export default function RentalDashboard({ dashboardData }: Props) {
 
       {/* Edit Equipment Modal */}
       {showEditModal && selectedEquipment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Edit Equipment</h3>
               <Button
@@ -1399,7 +1399,7 @@ export default function RentalDashboard({ dashboardData }: Props) {
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Equipment ID</label>
                 <input
@@ -1471,85 +1471,89 @@ export default function RentalDashboard({ dashboardData }: Props) {
       )}
 
       {/* Enhanced Header with Controls */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-            <h2 className="text-3xl font-bold text-gray-900">Equipment Management</h2>
-            <p className="text-gray-600 mt-2 text-lg">Manage your equipment inventory here. Add new equipment, edit existing ones, or rent them out to customers.</p>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Auto-refresh controls */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="rounded"
-            />
-            <span className="text-sm text-gray-600">Auto-refresh</span>
-            <select
-              value={refreshInterval}
-              onChange={(e) => setRefreshInterval(Number(e.target.value))}
-              className="text-sm border rounded px-2 py-1"
-            >
-              <option value={15}>15s</option>
-              <option value={30}>30s</option>
-              <option value={60}>1m</option>
-              <option value={300}>5m</option>
-            </select>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-6">
+        <div className="flex flex-col gap-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Equipment Management</h2>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base lg:text-lg">Manage your equipment inventory here. Add new equipment, edit existing ones, or rent them out to customers.</p>
           </div>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            {/* Auto-refresh controls */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="rounded"
+              />
+              <span className="text-sm text-gray-600">Auto-refresh</span>
+              <select
+                value={refreshInterval}
+                onChange={(e) => setRefreshInterval(Number(e.target.value))}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value={15}>15s</option>
+                <option value={30}>30s</option>
+                <option value={60}>1m</option>
+                <option value={300}>5m</option>
+              </select>
+            </div>
 
-          
-
-                     <Button onClick={refreshDashboardData} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-             Refresh Dashboard
-          </Button>
-          
-          <Button onClick={sendAllReminders} variant="outline">
-            <Bell className="w-4 h-4 mr-2" />
-            Send All Reminders
-          </Button>
-          
-          <Button onClick={sendOverdueAlerts} variant="outline">
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Send Overdue Alerts
-          </Button>
-        </div>
+            {/* Action buttons - responsive layout */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Button onClick={refreshDashboardData} variant="outline" size="sm" className="flex-1 sm:flex-none">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Refresh Dashboard</span>
+                <span className="sm:hidden">Refresh</span>
+              </Button>
+              
+              <Button onClick={sendAllReminders} variant="outline" size="sm" className="flex-1 sm:flex-none">
+                <Bell className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Send All Reminders</span>
+                <span className="sm:hidden">Reminders</span>
+              </Button>
+              
+              <Button onClick={sendOverdueAlerts} variant="outline" size="sm" className="flex-1 sm:flex-none">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Send Overdue Alerts</span>
+                <span className="sm:hidden">Alerts</span>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Enhanced Summary Cards with Interactive Elements */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-lg transition-all cursor-pointer group" onClick={() => setActiveTab('active')}>
-          <CardContent className="p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm border border-gray-200/50" onClick={() => setActiveTab('active')}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Rentals</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 group-hover:text-blue-600 transition-colors">
+                <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active Rentals</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mt-2 group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
                   {getActiveRentalsCount()}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Click to view details</p>
+                <p className="text-xs text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Click to view details</p>
               </div>
-              <div className="p-3 rounded-full text-green-600 bg-green-100 group-hover:bg-green-200 transition-colors">
+              <div className="p-4 rounded-2xl text-green-600 bg-gradient-to-br from-green-50 to-green-100 group-hover:from-green-100 group-hover:to-green-200 transition-all duration-300 group-hover:scale-110 shadow-lg">
                 <Wrench className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-lg transition-all cursor-pointer group" onClick={() => setActiveTab('overdue')}>
-          <CardContent className="p-4">
+        <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm border border-gray-200/50" onClick={() => setActiveTab('overdue')}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 group-hover:text-red-600 transition-colors">
+                <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mt-2 group-hover:from-red-600 group-hover:to-pink-600 transition-all duration-300">
                   {getOverdueCount()}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Click to view details</p>
+                <p className="text-xs text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Click to view details</p>
               </div>
-              <div className="p-3 rounded-full text-red-600 bg-red-100 group-hover:bg-red-200 transition-colors">
+              <div className="p-4 rounded-2xl text-red-600 bg-gradient-to-br from-red-50 to-red-100 group-hover:from-red-100 group-hover:to-red-200 transition-all duration-300 group-hover:scale-110 shadow-lg">
                 <AlertTriangle className="h-6 w-6" />
               </div>
             </div>
@@ -1557,34 +1561,34 @@ export default function RentalDashboard({ dashboardData }: Props) {
         </Card>
         
         
-        <Card className="hover:shadow-lg transition-all cursor-pointer group" onClick={() => setActiveTab('available')}>
-          <CardContent className="p-4">
+        <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm border border-gray-200/50" onClick={() => setActiveTab('available')}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 group-hover:text-green-600 transition-colors">
+                <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Available</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mt-2 group-hover:from-green-600 group-hover:to-emerald-600 transition-all duration-300">
                   {getAvailableEquipmentCount()}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Click to view details</p>
+                <p className="text-xs text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Click to view details</p>
               </div>
-              <div className="p-3 rounded-full text-green-600 bg-green-100 group-hover:bg-green-200 transition-colors">
+              <div className="p-4 rounded-2xl text-green-600 bg-gradient-to-br from-green-50 to-green-100 group-hover:from-green-100 group-hover:to-green-200 transition-all duration-300 group-hover:scale-110 shadow-lg">
                 <CheckCircle className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-lg transition-all cursor-pointer group">
-          <CardContent className="p-4">
+        <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1 bg-white/80 backdrop-blur-sm border border-gray-200/50">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Utilization</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 group-hover:text-yellow-600 transition-colors">
+                <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Utilization</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mt-2 group-hover:from-yellow-600 group-hover:to-orange-600 transition-all duration-300">
                   {getUtilizationRate()}%
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Real-time average</p>
+                <p className="text-xs text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Real-time average</p>
               </div>
-              <div className="p-3 rounded-full text-yellow-600 bg-yellow-100 group-hover:bg-yellow-200 transition-colors">
+              <div className="p-4 rounded-2xl text-yellow-600 bg-gradient-to-br from-yellow-50 to-yellow-100 group-hover:from-yellow-100 group-hover:to-yellow-200 transition-all duration-300 group-hover:scale-110 shadow-lg">
                 <TrendingUp className="h-6 w-6" />
               </div>
             </div>
@@ -1593,10 +1597,10 @@ export default function RentalDashboard({ dashboardData }: Props) {
       </div>
 
       {/* Enhanced Filters Section */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Advanced Filters & Search</CardTitle>
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Advanced Filters & Search</CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -1610,7 +1614,7 @@ export default function RentalDashboard({ dashboardData }: Props) {
         
         {showFilters && (
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Search */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -1683,11 +1687,11 @@ export default function RentalDashboard({ dashboardData }: Props) {
             </div>
 
             {/* Filter Actions */}
-            <div className="flex items-center justify-between pt-4 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t gap-4">
               <div className="text-sm text-gray-600">
                 Showing {getActiveRentals.length} of {dashboardData.overview.active_rentals} active rentals
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -1729,13 +1733,34 @@ export default function RentalDashboard({ dashboardData }: Props) {
 
       {/* Enhanced Tabs with Interactive Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-white shadow-sm">
-          <TabsTrigger value="active">Active Rentals ({getActiveRentalsCount()})</TabsTrigger>
-          <TabsTrigger value="available">Available ({getAvailableEquipmentCount()})</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue ({getOverdueCount()})</TabsTrigger>
-          <TabsTrigger value="due-soon">Due Soon ({getDueSoonCount()})</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-5 bg-white shadow-sm min-w-max">
+            <TabsTrigger value="active" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Active Rentals</span>
+              <span className="sm:hidden">Active</span>
+              <span className="ml-1">({getActiveRentalsCount()})</span>
+            </TabsTrigger>
+            <TabsTrigger value="available" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Available</span>
+              <span className="sm:hidden">Avail</span>
+              <span className="ml-1">({getAvailableEquipmentCount()})</span>
+            </TabsTrigger>
+            <TabsTrigger value="overdue" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Overdue</span>
+              <span className="sm:hidden">Over</span>
+              <span className="ml-1">({getOverdueCount()})</span>
+            </TabsTrigger>
+            <TabsTrigger value="due-soon" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Due Soon</span>
+              <span className="sm:hidden">Due</span>
+              <span className="ml-1">({getDueSoonCount()})</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Available Equipment Tab */}
         <TabsContent value="available" className="space-y-4">
@@ -1793,8 +1818,8 @@ export default function RentalDashboard({ dashboardData }: Props) {
             </div>
           </div>
 
-          {/* Table Header */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          {/* Table Header - Hidden on mobile, shown on larger screens */}
+          <div className="hidden lg:block bg-gray-50 rounded-lg p-4">
             <div className="grid grid-cols-5 gap-4 text-sm font-medium text-gray-700">
               <div className="flex items-center gap-2">
                 <input
@@ -1816,7 +1841,78 @@ export default function RentalDashboard({ dashboardData }: Props) {
               {getPaginatedData(getAvailableEquipment, currentPage).map((equipment) => (
                 <Card key={equipment.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
-                    <div className="grid grid-cols-5 gap-4 items-center">
+                    {/* Mobile Layout */}
+                    <div className="lg:hidden space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.has(equipment.id)}
+                            onChange={() => handleSelectItem(equipment.id)}
+                            className="rounded"
+                          />
+                          <div className="flex items-center space-x-3">
+                            <CheckCircle className="h-6 w-6 text-green-600" />
+                            <div>
+                              <p className="font-medium text-sm">{equipment.equipment_id}</p>
+                              <p className="text-xs text-gray-500">Available for rent</p>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                          Available
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="capitalize text-xs">
+                          {equipment.type}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewEquipment(equipment)}
+                            className="p-2"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEquipment(equipment)}
+                            className="p-2"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setRentalData({ siteId: '', days: '', equipment: equipment })
+                              setShowRentalModal(true)
+                            }}
+                            className="p-2"
+                          >
+                            <Calendar className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setEquipmentToDelete(equipment)
+                              setShowDeleteModal(true)
+                            }}
+                            className="p-2"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden lg:grid grid-cols-5 gap-4 items-center">
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
@@ -1895,11 +1991,11 @@ export default function RentalDashboard({ dashboardData }: Props) {
           )}
 
           {/* Pagination and Show All Options */}
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t gap-4">
             <div className="text-sm text-gray-600">
               Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, getAvailableEquipment.length)} of {getAvailableEquipment.length} results
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               {/* Records per page selector */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Show:</span>
@@ -1925,18 +2021,65 @@ export default function RentalDashboard({ dashboardData }: Props) {
               
               {/* Pagination Controls */}
               {getTotalPages(getAvailableEquipment) > 1 && (
-                <>
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
+                    className="hidden sm:flex"
                   >
+                    Previous
+                  </Button>
+                  
+                  {/* Mobile: Simple prev/next */}
+                  <div className="flex sm:hidden items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="p-2"
+                    >
+                      ←
+                    </Button>
+                    <span className="text-sm text-gray-600 px-2">
+                      {currentPage} of {getTotalPages(getAvailableEquipment)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === getTotalPages(getAvailableEquipment)}
+                      className="p-2"
+                    >
+                      →
+                    </Button>
+                  </div>
+                  
+                  {/* Desktop: Full pagination */}
+                  <div className="hidden sm:flex items-center gap-1">
+                    {/* First few pages */}
+                    {Array.from({ length: Math.min(5, getTotalPages(getAvailableEquipment)) }, (_, i) => i + 1).map(page => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handlePageChange(page)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    ))}
                     
-                    {/* Page Numbers */}
-                    <div className="flex items-center gap-1">
-                      {/* First few pages */}
-                      {Array.from({ length: Math.min(5, getTotalPages(getAvailableEquipment)) }, (_, i) => i + 1).map(page => (
+                    {/* Ellipsis if more than 5 pages */}
+                    {getTotalPages(getAvailableEquipment) > 5 && (
+                      <span className="text-sm text-gray-500 px-2">...</span>
+                    )}
+                    
+                    {/* Last few pages if more than 5 */}
+                    {getTotalPages(getAvailableEquipment) > 5 && (
+                      Array.from({ length: Math.min(3, getTotalPages(getAvailableEquipment) - 5) }, (_, i) => getTotalPages(getAvailableEquipment) - 2 + i).map(page => (
                         <Button
                           key={page}
                           variant={currentPage === page ? 'default' : 'outline'}
@@ -1946,39 +2089,20 @@ export default function RentalDashboard({ dashboardData }: Props) {
                         >
                           {page}
                         </Button>
-                      ))}
-                      
-                      {/* Ellipsis if more than 5 pages */}
-                      {getTotalPages(getAvailableEquipment) > 5 && (
-                        <span className="text-sm text-gray-500 px-2">...</span>
-                      )}
-                      
-                      {/* Last few pages if more than 5 */}
-                      {getTotalPages(getAvailableEquipment) > 5 && (
-                        Array.from({ length: Math.min(3, getTotalPages(getAvailableEquipment) - 5) }, (_, i) => getTotalPages(getAvailableEquipment) - 2 + i).map(page => (
-                          <Button
-                            key={page}
-                            variant={currentPage === page ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handlePageChange(page)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {page}
-                          </Button>
-                        ))
-                      )}
-                    </div>
-                    
-                  </Button>
+                      ))
+                    )}
+                  </div>
+                  
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === getTotalPages(getAvailableEquipment)}
+                    className="hidden sm:flex"
                   >
                     Next
                   </Button>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -2025,8 +2149,8 @@ export default function RentalDashboard({ dashboardData }: Props) {
             )}
           </div>
 
-          {/* Table Header with Sorting */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          {/* Table Header with Sorting - Hidden on mobile, shown on larger screens */}
+          <div className="hidden lg:block bg-gray-50 rounded-lg p-4">
              <div className="grid grid-cols-8 gap-4 text-sm font-medium text-gray-700">
               <div className="flex items-center gap-2">
                 <input
@@ -2076,7 +2200,87 @@ export default function RentalDashboard({ dashboardData }: Props) {
               {getPaginatedData(getActiveRentals, currentPage).map((rental) => (
                 <Card key={rental.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
-                     <div className="grid grid-cols-8 gap-4 items-center">
+                    {/* Mobile Layout */}
+                    <div className="lg:hidden space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.has(rental.id)}
+                            onChange={() => handleSelectItem(rental.id)}
+                            className="rounded"
+                          />
+                          <div className="flex items-center space-x-3">
+                            <Wrench className="h-6 w-6 text-blue-600" />
+                            <div>
+                              <p className="font-medium text-sm">{rental.equipment_id}</p>
+                              <p className="text-xs text-gray-500">ID: {rental.id}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {rental.utilization}% util
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">Type:</span>
+                          <Badge variant="outline" className="capitalize ml-1 text-xs">
+                            {rental.type}
+                          </Badge>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Site:</span>
+                          <span className="ml-1 font-medium">{rental.site_id}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Engine Hours:</span>
+                          <span className="ml-1 font-medium">{rental.engine_hours}h</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Check-out:</span>
+                          <span className="ml-1 font-medium">
+                            {rental.check_out_date ? new Date(rental.check_out_date).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-500">
+                          Return: {rental.check_in_date ? new Date(rental.check_in_date).toLocaleDateString() : 'N/A'}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewEquipment(rental)}
+                            className="p-2"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditEquipment(rental)}
+                            className="p-2"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleReturnEquipment(rental)}
+                            className="p-2"
+                          >
+                            <CheckCircle className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden lg:grid grid-cols-8 gap-4 items-center">
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
