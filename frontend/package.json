@@ -10,7 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.17",
+    "@emailjs/browser": "^4.4.1",
+    "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^1.0.6",
     "axios": "^1.6.0",
     "clsx": "^2.0.0",

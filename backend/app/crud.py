@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
 from datetime import datetime, timedelta
 from typing import List, Optional
-from app import models
-from app import schemas
+from . import models
+from . import schemas
 
 
 # Equipment CRUD
@@ -409,3 +409,226 @@ def update_demand_forecast_actual(db: Session, forecast_id: int, actual_demand: 
         db.refresh(db_forecast)
     
     return db_forecast
+
+
+def extend_rental(db: Session, rental_id: int, extension_days: int):
+    """Extend a rental by the specified number of days"""
+    db_rental = db.query(models.Rental).filter(models.Rental.id == rental_id).first()
+    if db_rental and db_rental.status == "active":
+        # Extend the expected return date
+        if db_rental.expected_return_date:
+            db_rental.expected_return_date += timedelta(days=extension_days)
+        else:
+            # If no expected return date, set it to current time + extension
+            db_rental.expected_return_date = datetime.utcnow() + timedelta(days=extension_days)
+        
+        db_rental.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(db_rental)
+    return db_rental
+
+
+def get_rentals_due_soon(db: Session, days_ahead: int = 7):
+    """Get rentals that are due within the specified number of days"""
+    current_time = datetime.utcnow()
+    target_date = current_time + timedelta(days=days_ahead)
+    
+    return db.query(models.Rental).filter(
+        and_(
+            models.Rental.status == "active",
+            models.Rental.expected_return_date <= target_date,
+            models.Rental.expected_return_date > current_time
+        )
+    ).all()
+
+
+def get_rental_analytics_summary(db: Session):
+    """Get comprehensive rental analytics summary"""
+    current_time = datetime.utcnow()
+    
+    # Basic counts
+    total_rentals = db.query(models.Rental).count()
+    active_rentals = db.query(models.Rental).filter(models.Rental.status == "active").count()
+    overdue_rentals = db.query(models.Rental).filter(
+        and_(
+            models.Rental.status == "active",
+            models.Rental.expected_return_date < current_time
+        )
+    ).count()
+    completed_rentals = db.query(models.Rental).filter(models.Rental.status == "completed").count()
+    
+    # Revenue calculations
+    total_revenue = db.query(func.sum(models.Rental.total_cost)).filter(
+        models.Rental.status == "completed"
+    ).scalar() or 0.0
+    
+    monthly_revenue = db.query(func.sum(models.Rental.total_cost)).filter(
+        and_(
+            models.Rental.status == "completed",
+            models.Rental.check_in_date >= current_time.replace(day=1)
+        )
+    ).scalar() or 0.0
+    
+    # Average rental duration
+    avg_duration = db.query(func.avg(
+        func.extract('day', models.Rental.check_in_date - models.Rental.check_out_date)
+    )).filter(models.Rental.status == "completed").scalar() or 0.0
+    
+    # Equipment utilization
+    total_equipment = db.query(models.Equipment).count()
+    rented_equipment = db.query(models.Equipment).filter(models.Equipment.status == "rented").count()
+    utilization_rate = (rented_equipment / total_equipment * 100) if total_equipment > 0 else 0
+    
+    # Recent activity (last 30 days)
+    thirty_days_ago = current_time - timedelta(days=30)
+    recent_rentals = db.query(models.Rental).filter(
+        models.Rental.check_out_date >= thirty_days_ago
+    ).count()
+    
+    return {
+        "total_rentals": total_rentals,
+        "active_rentals": active_rentals,
+        "overdue_rentals": overdue_rentals,
+        "completed_rentals": completed_rentals,
+        "total_revenue": float(total_revenue),
+        "monthly_revenue": float(monthly_revenue),
+        "average_rental_duration": float(avg_duration),
+        "equipment_utilization_rate": round(utilization_rate, 2),
+        "recent_rentals_30_days": recent_rentals,
+        "generated_at": current_time.isoformat()
+    }
+
+
+def get_equipment_rental_history(db: Session, equipment_id: int):
+    """Get rental history for a specific equipment"""
+    equipment = db.query(models.Equipment).filter(models.Equipment.id == equipment_id).first()
+    if not equipment:
+        return None
+    
+    # Get all rentals for this equipment
+    rentals = db.query(models.Rental).filter(
+        models.Rental.equipment_id == equipment_id
+    ).order_by(models.Rental.check_out_date.desc()).all()
+    
+    # Calculate statistics
+    total_rentals = len(rentals)
+    total_revenue = sum(r.total_cost or 0 for r in rentals if r.status == "completed")
+    total_days = sum(
+        (r.check_in_date - r.check_out_date).days 
+        for r in rentals 
+        if r.check_in_date and r.status == "completed"
+    )
+    
+    # Get usage logs
+    usage_logs = db.query(models.UsageLog).filter(
+        models.UsageLog.equipment_id == equipment_id
+    ).order_by(models.UsageLog.date.desc()).all()
+    
+    total_engine_hours = sum(log.engine_hours or 0 for log in usage_logs)
+    total_idle_hours = sum(log.idle_hours or 0 for log in usage_logs)
+    total_fuel_usage = sum(log.fuel_usage or 0 for log in usage_logs)
+    
+    return {
+        "equipment_id": equipment.equipment_id,
+        "equipment_type": equipment.type,
+        "total_rentals": total_rentals,
+        "total_revenue": float(total_revenue),
+        "total_rental_days": total_days,
+        "average_rental_duration": round(total_days / total_rentals, 2) if total_rentals > 0 else 0,
+        "total_engine_hours": float(total_engine_hours),
+        "total_idle_hours": float(total_idle_hours),
+        "total_fuel_usage": float(total_fuel_usage),
+        "utilization_rate": round(
+            (total_engine_hours / (total_engine_hours + total_idle_hours) * 100) 
+            if (total_engine_hours + total_idle_hours) > 0 else 0, 2
+        ),
+        "rentals": [
+            {
+                "id": r.id,
+                "check_out_date": r.check_out_date.isoformat(),
+                "check_in_date": r.check_in_date.isoformat() if r.check_in_date else None,
+                "status": r.status,
+                "total_cost": float(r.total_cost) if r.total_cost else 0,
+                "site_id": r.site_id,
+                "operator_id": r.operator_id
+            }
+            for r in rentals
+        ],
+        "usage_logs": [
+            {
+                "id": log.id,
+                "date": log.date.isoformat(),
+                "engine_hours": float(log.engine_hours) if log.engine_hours else 0,
+                "idle_hours": float(log.idle_hours) if log.idle_hours else 0,
+                "fuel_usage": float(log.fuel_usage) if log.fuel_usage else 0,
+                "condition_rating": log.condition_rating,
+                "maintenance_required": log.maintenance_required
+            }
+            for log in usage_logs
+        ]
+    }
+
+
+def get_site_rental_analytics(db: Session, site_id: int):
+    """Get rental analytics for a specific site"""
+    site = db.query(models.Site).filter(models.Site.id == site_id).first()
+    if not site:
+        return None
+    
+    # Get all rentals for this site
+    rentals = db.query(models.Rental).filter(
+        models.Rental.site_id == site_id
+    ).order_by(models.Rental.check_out_date.desc()).all()
+    
+    # Calculate statistics
+    total_rentals = len(rentals)
+    active_rentals = len([r for r in rentals if r.status == "active"])
+    overdue_rentals = len([
+        r for r in rentals 
+        if r.status == "active" and r.expected_return_date and r.expected_return_date < datetime.utcnow()
+    ])
+    completed_rentals = len([r for r in rentals if r.status == "completed"])
+    
+    total_revenue = sum(r.total_cost or 0 for r in rentals if r.status == "completed")
+    
+    # Equipment type breakdown
+    equipment_types = {}
+    for rental in rentals:
+        if rental.equipment:
+            eq_type = rental.equipment.type
+            if eq_type not in equipment_types:
+                equipment_types[eq_type] = {"count": 0, "revenue": 0}
+            equipment_types[eq_type]["count"] += 1
+            if rental.total_cost:
+                equipment_types[eq_type]["revenue"] += rental.total_cost
+    
+    # Monthly trends (last 12 months)
+    monthly_data = {}
+    for i in range(12):
+        month_start = datetime.utcnow().replace(day=1) - timedelta(days=30*i)
+        month_end = month_start.replace(day=1) + timedelta(days=32)
+        month_end = month_end.replace(day=1) - timedelta(days=1)
+        
+        month_rentals = [
+            r for r in rentals 
+            if r.check_out_date >= month_start and r.check_out_date <= month_end
+        ]
+        
+        month_key = month_start.strftime('%Y-%m')
+        monthly_data[month_key] = {
+            "rentals": len(month_rentals),
+            "revenue": sum(r.total_cost or 0 for r in month_rentals if r.status == "completed")
+        }
+    
+    return {
+        "site_id": site.site_id,
+        "site_name": site.name,
+        "total_rentals": total_rentals,
+        "active_rentals": active_rentals,
+        "overdue_rentals": overdue_rentals,
+        "completed_rentals": completed_rentals,
+        "total_revenue": float(total_revenue),
+        "equipment_type_breakdown": equipment_types,
+        "monthly_trends": monthly_data,
+        "generated_at": datetime.utcnow().isoformat()
+    }

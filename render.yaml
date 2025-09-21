@@ -1,0 +1,38 @@
+services:
+  # Backend API Service
+  - type: web
+    name: smart-rental-tracker-backend
+    env: python
+    branch: main
+    buildCommand: |
+      cd backend
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      python start_production.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        value: sqlite:///./app/rental.db
+      - key: ALLOWED_ORIGINS
+        value: https://smart-rental-tracker-frontend.onrender.com
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # Frontend Service
+  - type: web
+    name: smart-rental-tracker-frontend
+    env: static
+    branch: main
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+    staticPublishPath: frontend/out
+    envVars:
+      - key: NODE_VERSION
+        value: 18.18.0
+      - key: NEXT_PUBLIC_API_URL
+        value: https://smart-rental-tracker-backend.onrender.com
+    autoDeploy: true

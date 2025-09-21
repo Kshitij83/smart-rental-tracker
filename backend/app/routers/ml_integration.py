@@ -9,9 +9,9 @@ import os
 ml_path = os.path.join(os.path.dirname(__file__), '..', '..', 'ml')
 sys.path.append(ml_path)
 
-from app.database import get_db
-from app import crud
-from app import schemas
+from ..database import get_db
+from .. import crud
+from .. import schemas
 
 router = APIRouter(prefix="/ml", tags=["Machine Learning"])
 

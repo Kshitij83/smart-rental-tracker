@@ -2,16 +2,13 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import threading
-import schedule
-import time
 import logging
 import os
-from app import models
-from app import schemas
-from app import crud
-from app.database import engine, get_db
-from app.routers import ml_integration
+from . import models
+from . import schemas
+from . import crud
+from .database import engine, get_db
+from .routers import ml_integration, equipment, rentals, analytics
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,92 +17,42 @@ logger = logging.getLogger(__name__)
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
-# Global variable to control scheduler
-scheduler_thread = None
-scheduler_running = False
-
-def run_scheduled_notifications():
-    """Run the notification service"""
-    try:
-        from app.notification_service import NotificationService
-        logger.info("Running scheduled notification check...")
-        
-        notification_service = NotificationService()
-        
-        # Test email configuration
-        if not notification_service.test_email_configuration():
-            logger.warning("Email configuration test failed. Email notifications will be disabled.")
-            return
-        
-        # Send return reminders
-        notification_service.send_return_reminders()
-        
-        # Send overdue notifications
-        notification_service.send_overdue_notifications()
-        
-        logger.info("Scheduled notification run completed successfully")
-        
-    except Exception as e:
-        logger.error(f"Error in scheduled notification run: {e}")
-
-def schedule_runner():
-    """Background thread function to run the scheduler"""
-    global scheduler_running
-    scheduler_running = True
-    
-    logger.info("Starting notification scheduler...")
-    logger.info("Schedule: Return reminders at 9:00 AM, Overdue notifications at 2:00 PM, Full check at 6:00 PM")
-    
-    # Schedule notifications
-    schedule.every().day.at("09:00").do(run_scheduled_notifications).tag('return_reminders')
-    schedule.every().day.at("14:00").do(run_scheduled_notifications).tag('overdue_notifications')
-    schedule.every().day.at("18:00").do(run_scheduled_notifications).tag('full_check')
-    
-    # Run an initial check when starting
-    logger.info("Running initial notification check...")
-    run_scheduled_notifications()
-    
-    # Keep the scheduler running
-    while scheduler_running:
-        schedule.run_pending()
-        time.sleep(60)  # Check every minute
-    
-    logger.info("Notification scheduler stopped")
-
 # Initialize FastAPI app
 app = FastAPI(
     title="Smart Rental Tracking System",
-    description="API for tracking construction and mining equipment rentals with ML-powered demand forecasting, anomaly detection, and automated notifications",
+    description="API for tracking construction and mining equipment rentals with ML-powered demand forecasting and anomaly detection",
     version="1.0.0"
 )
 
 @app.on_event("startup")
 async def startup_event():
-    """Start the notification scheduler when the server starts"""
-    global scheduler_thread
-    logger.info("🚀 Starting Smart Rental Tracker with automatic email notifications...")
-    
-    # Start the scheduler in a background thread
-    scheduler_thread = threading.Thread(target=schedule_runner, daemon=True)
-    scheduler_thread.start()
-    
-    logger.info("✅ Automatic email notifications are now active!")
-    logger.info("📧 Return reminders: Daily at 9:00 AM")
-    logger.info("⚠️  Overdue notifications: Daily at 2:00 PM")
-    logger.info("🔄 Full check: Daily at 6:00 PM")
+    """Start the Smart Rental Tracker"""
+    logger.info("🚀 Starting Smart Rental Tracker...")
+    logger.info("✅ System is ready!")
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Stop the notification scheduler when the server shuts down"""
-    global scheduler_running
+    """Stop the Smart Rental Tracker"""
     logger.info("🛑 Stopping Smart Rental Tracker...")
-    scheduler_running = False
-    logger.info("✅ Notification scheduler stopped")
+    logger.info("✅ System stopped")
 
 # Add CORS middleware
+allowed_origins = [
+    "http://localhost:3000",  # Next.js default port
+    "https://smart-rental-tracker-frontend.onrender.com",  # Render frontend
+    "https://smart-rental-tracker.vercel.app",  # Vercel frontend
+    "https://smart-rental-tracker-git-main-vanshsehgal08s-projects.vercel.app",  # Vercel preview
+    "https://smart-rental-tracker-con1tncjq-vanshsehgal08s-projects.vercel.app",  # Vercel preview
+]
+
+# Add environment variable origins
+env_origins = os.getenv("ALLOWED_ORIGINS", "")
+if env_origins:
+    allowed_origins.extend([origin.strip() for origin in env_origins.split(",")])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -113,11 +60,24 @@ app.add_middleware(
 
 # Include routers
 app.include_router(ml_integration.router)
+app.include_router(equipment.router)
+app.include_router(rentals.router)
+app.include_router(analytics.router)
 
 
 @app.get("/")
 def read_root():
     return {"message": "Smart Rental Tracking System API", "version": "1.0.0"}
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Render monitoring"""
+    return {
+        "status": "healthy",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "service": "Smart Rental Tracker API",
+        "version": "1.0.0"
+    }
 
 
 @app.get("/dashboard")
@@ -342,7 +302,7 @@ def create_equipment(equipment: schemas.EquipmentCreate, db: Session = Depends(g
 
 
 @app.get("/equipment/")
-def read_equipment(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_equipment(skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)):
     """Get equipment from database"""
     try:
         equipment = crud.get_equipment_list(db, skip=skip, limit=limit)
@@ -369,8 +329,30 @@ def update_equipment(equipment_id: int, equipment_update: schemas.EquipmentUpdat
 
 
 @app.get("/equipment/status/detailed", response_model=List[schemas.EquipmentWithStatus])
-def read_equipment_with_status(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_equipment_with_status(skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)):
     return crud.get_equipment_with_status(db, skip=skip, limit=limit)
+
+
+@app.get("/equipment/all")
+def read_all_equipment(db: Session = Depends(get_db)):
+    """Get all equipment from database without pagination limits"""
+    try:
+        equipment = crud.get_equipment_list(db, skip=0, limit=10000)  # Very high limit to get all
+        return equipment
+    except Exception as e:
+        print(f"Error reading all equipment: {e}")
+        raise HTTPException(status_code=500, detail="Error reading equipment data")
+
+
+@app.get("/equipment/count")
+def get_equipment_count(db: Session = Depends(get_db)):
+    """Get total count of equipment in database"""
+    try:
+        count = db.query(models.Equipment).count()
+        return {"total_equipment": count}
+    except Exception as e:
+        print(f"Error counting equipment: {e}")
+        raise HTTPException(status_code=500, detail="Error counting equipment")
 
 
 # Site endpoints
@@ -554,115 +536,7 @@ def detect_anomalies(db: Session = Depends(get_db)):
     }
 
 
-# Notification endpoints
-@app.get("/notifications/upcoming-returns")
-def get_upcoming_returns():
-    """Get equipment rentals due for return within notification window"""
-    from app.notification_service import NotificationService
-    notification_service = NotificationService()
-    upcoming_rentals = notification_service.get_upcoming_returns()
-    return {
-        "count": len(upcoming_rentals),
-        "rentals": upcoming_rentals
-    }
 
-
-@app.get("/notifications/overdue-rentals")
-def get_overdue_rentals():
-    """Get overdue equipment rentals"""
-    from app.notification_service import NotificationService
-    notification_service = NotificationService()
-    overdue_rentals = notification_service.get_overdue_rentals()
-    return {
-        "count": len(overdue_rentals),
-        "rentals": overdue_rentals
-    }
-
-
-@app.post("/notifications/send-return-reminders")
-def send_return_reminders():
-    """Send return reminder emails for upcoming due dates"""
-    from app.notification_service import NotificationService
-    notification_service = NotificationService()
-    
-    # Test email configuration first
-    if not notification_service.test_email_configuration():
-        raise HTTPException(
-            status_code=500, 
-            detail="Email configuration error. Please check SMTP settings in .env file."
-        )
-    
-    try:
-        notification_service.send_return_reminders()
-        return {"message": "Return reminder emails sent successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send emails: {str(e)}")
-
-
-@app.post("/notifications/send-overdue-notifications")
-def send_overdue_notifications():
-    """Send overdue rental notifications"""
-    from app.notification_service import NotificationService
-    notification_service = NotificationService()
-    
-    # Test email configuration first
-    if not notification_service.test_email_configuration():
-        raise HTTPException(
-            status_code=500, 
-            detail="Email configuration error. Please check SMTP settings in .env file."
-        )
-    
-    try:
-        notification_service.send_overdue_notifications()
-        return {"message": "Overdue rental notifications sent successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send emails: {str(e)}")
-
-
-@app.post("/notifications/test-email-config")
-def test_email_configuration():
-    """Test email configuration"""
-    from app.notification_service import NotificationService
-    notification_service = NotificationService()
-    
-    if notification_service.test_email_configuration():
-        return {"message": "Email configuration is valid"}
-    else:
-        raise HTTPException(
-            status_code=500, 
-            detail="Email configuration test failed. Please check your .env file settings."
-        )
-
-
-@app.post("/notifications/run-all")
-def run_all_notifications():
-    """Run all notification checks and send emails"""
-    from app.notification_service import NotificationService
-    notification_service = NotificationService()
-    
-    # Test email configuration first
-    if not notification_service.test_email_configuration():
-        raise HTTPException(
-            status_code=500, 
-            detail="Email configuration error. Please check SMTP settings in .env file."
-        )
-    
-    try:
-        # Get counts before sending
-        upcoming = notification_service.get_upcoming_returns()
-        overdue = notification_service.get_overdue_rentals()
-        
-        # Send notifications
-        notification_service.send_return_reminders()
-        notification_service.send_overdue_notifications()
-        
-        return {
-            "message": "All notifications processed successfully",
-            "upcoming_returns_processed": len(upcoming),
-            "overdue_rentals_processed": len(overdue)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process notifications: {str(e)}")
 
 
 if __name__ == "__main__":

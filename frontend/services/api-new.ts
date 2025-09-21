@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // API base configuration
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },

@@ -33,7 +33,7 @@ export default function EquipmentStats() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('http://localhost:8000/dashboard')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'}/dashboard`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

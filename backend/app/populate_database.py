@@ -6,8 +6,8 @@ Script to populate the database with data from CSV file
 import pandas as pd
 import os
 from sqlalchemy.orm import sessionmaker
-from models import Base, Equipment
-from database import engine, SessionLocal
+from .models import Base, Equipment
+from .database import engine, SessionLocal
 
 def clear_and_populate_database():
     """Clear existing data and populate with CSV data"""
