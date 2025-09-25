@@ -2,11 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { equipmentApi } from '../lib/api'
+import AddEquipmentModal from './AddEquipmentModal'
 
 interface Equipment {
   id: number
   equipment_id: string
   type: string
+  site_id?: string
+  check_out_date?: string
+  check_in_date?: string
+  engine_hours_per_day?: number
+  idle_hours_per_day?: number
+  operating_days?: number
+  last_operator_id?: string
   model?: string
   manufacturer?: string
   year?: number
@@ -21,21 +29,26 @@ export default function EquipmentTable() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const fetchEquipment = async () => {
+    try {
+      const response = await equipmentApi.getAll()
+      setEquipment(response.data)
+    } catch (error) {
+      console.error('Error fetching equipment:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchEquipment = async () => {
-      try {
-        const response = await equipmentApi.getAll()
-        setEquipment(response.data)
-      } catch (error) {
-        console.error('Error fetching equipment:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchEquipment()
   }, [])
+
+  const handleEquipmentAdded = () => {
+    fetchEquipment() // Refresh the equipment list
+  }
 
   // Filter equipment based on search and filters
   const filteredEquipment = equipment.filter(item => {
@@ -117,7 +130,13 @@ export default function EquipmentTable() {
           <p className="text-sm text-gray-600">
             Showing {filteredEquipment.length} of {equipment.length} equipment items
           </p>
-          <button className="btn-primary">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="btn-primary"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Add New Equipment
           </button>
         </div>
@@ -135,19 +154,16 @@ export default function EquipmentTable() {
                 Type
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Site ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Model
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Manufacturer
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Year
+                Engine Hrs/Day
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Updated
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
@@ -164,21 +180,18 @@ export default function EquipmentTable() {
                   <div className="text-sm text-gray-900">{item.type}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-500">{item.site_id || 'N/A'}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500">{item.model || 'N/A'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{item.manufacturer || 'N/A'}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{item.year || 'N/A'}</div>
+                  <div className="text-sm text-gray-500">{item.engine_hours_per_day || 0}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
                     {item.status}
                   </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(item.updated_at).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
@@ -232,6 +245,13 @@ export default function EquipmentTable() {
           </div>
         </div>
       )}
+      
+      {/* Add Equipment Modal */}
+      <AddEquipmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleEquipmentAdded}
+      />
     </div>
   )
 }

@@ -81,6 +81,21 @@ def create_operator(db: Session, operator: schemas.OperatorCreate):
     return db_operator
 
 
+def update_operator(db: Session, operator_id: int, operator_update: schemas.OperatorUpdate):
+    db_operator = db.query(models.Operator).filter(models.Operator.id == operator_id).first()
+    if db_operator is None:
+        return None
+    
+    # Update only the fields that are provided
+    update_data = operator_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_operator, key, value)
+    
+    db.commit()
+    db.refresh(db_operator)
+    return db_operator
+
+
 # Rental CRUD
 def get_rental(db: Session, rental_id: int):
     return db.query(models.Rental).filter(models.Rental.id == rental_id).first()

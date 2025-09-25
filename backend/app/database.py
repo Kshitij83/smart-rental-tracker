@@ -4,7 +4,10 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Database URL - using SQLite for development
-SQLALCHEMY_DATABASE_URL = "sqlite:///./rental.db"
+# Use absolute path to ensure consistency
+current_dir = os.path.dirname(os.path.abspath(__file__))
+database_path = os.path.join(current_dir, "rental.db")
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{database_path}"
 
 # Create engine
 engine = create_engine(
