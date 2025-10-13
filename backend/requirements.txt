@@ -1,15 +1,4 @@
-
-# fastapi>=0.104.0
-# uvicorn[standard]>=0.24.0
-# sqlalchemy>=2.0.0
-# pydantic>=2.0.0
-# python-dotenv>=1.0.0
-# requests>=2.31.0
-# pandas>=1.5.0
-# numpy>=1.21.0
-# scikit-learn>=1.0.0
-
-# Smart Rental Tracker - Backend Dependencies
+# Smart Rental Tracker - Backend Dependencies (Python 3.11 compatible)
 # Install with: pip install -r requirements.txt
 
 # Core FastAPI Framework
@@ -28,11 +17,11 @@ python-dotenv==1.0.0
 schedule==1.2.0
 requests==2.31.0
 
-# ML Dependencies for Analytics and Forecasting
-pandas==2.1.3
+# ML Dependencies for Analytics and Forecasting (Python 3.11 compatible)
+pandas==2.1.4
 scikit-learn==1.3.2
-numpy==1.25.2
-matplotlib==3.8.2
+numpy==1.24.4
+matplotlib==3.7.3
 seaborn==0.13.0
 joblib==1.3.2
 
@@ -44,17 +33,8 @@ xlsxwriter==3.1.9
 pytest==7.4.3
 pytest-asyncio==0.21.1
 
-# CORS Middleware (included with FastAPI)
-# fastapi already includes starlette
+# Production Server
+gunicorn==21.2.0
 
-# Built-in Python libraries (no pip install needed):
-# - smtplib (email sending)
-# - email (email formatting)
-# - datetime (date/time handling)
-# - typing (type hints)
-# - os (operating system interface)
-# - sys (system parameters)
-# - time (time utilities)
-# - logging (application logging)
-# - argparse (command line parsing)
-# - random (random number generation)
+# Environment and Configuration
+python-multipart==0.0.6

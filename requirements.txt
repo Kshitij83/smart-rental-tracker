@@ -1,0 +1,33 @@
+# Smart Rental Tracker - Backend Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core FastAPI Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database ORM and SQLite
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Data Validation and Serialization
+pydantic==2.5.0
+
+# Email and Notification System
+python-dotenv==1.0.0
+schedule==1.2.0
+requests==2.31.0
+
+# CORS Middleware (included with FastAPI)
+# fastapi already includes starlette
+
+# Built-in Python libraries (no pip install needed):
+# - smtplib (email sending)
+# - email (email formatting)
+# - datetime (date/time handling)
+# - typing (type hints)
+# - os (operating system interface)
+# - sys (system parameters)
+# - time (time utilities)
+# - logging (application logging)
+# - argparse (command line parsing)
+# - random (random number generation)

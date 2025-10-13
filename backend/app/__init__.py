@@ -1,1 +1,1 @@
-# Smart Rental Tracking System - Backend App Package
+# Smart Rental Tracker Backend App Package

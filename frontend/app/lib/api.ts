@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://cat-v7yf.onrender.com'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -65,6 +65,45 @@ export const mlApi = {
   // Model Management
   saveModels: () => api.post('/ml/models/save'),
   retrainModels: () => api.post('/ml/models/retrain'),
+}
+
+// Equipment Management API
+export const equipmentManagementApi = {
+  // Return equipment (make it available)
+  returnEquipment: (equipmentId: string) => api.post(`/equipment/${equipmentId}/return`),
+  
+  // Update equipment status
+  updateEquipmentStatus: (equipmentId: string, status: string, data?: any) => 
+    api.put(`/equipment/${equipmentId}/status`, { status, ...data }),
+  
+  // Get equipment with pagination
+  getEquipmentPaginated: (page: number = 1, limit: number = 10, status?: string) => 
+    api.get(`/equipment/paginated?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`),
+  
+  // Get all equipment without pagination for counts
+  getAllEquipment: () => api.get('/equipment/all'),
+  
+  // Create new equipment
+  createEquipment: (data: any) => api.post('/equipment/', data),
+  
+  // Delete equipment
+  deleteEquipment: (equipmentId: string) => api.delete(`/equipment/${equipmentId}`),
+}
+
+// Rental Management API
+export const rentalManagementApi = {
+  // Return equipment from rental
+  returnEquipmentFromRental: (rentalId: number) => api.post(`/rentals/${rentalId}/checkin`),
+  
+  // Get all rentals with pagination
+  getRentalsPaginated: (page: number = 1, limit: number = 10, status?: string) => 
+    api.get(`/rentals/paginated?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`),
+  
+  // Send reminders
+  sendAllReminders: () => api.post('/rentals/send-all-reminders'),
+  
+  // Send overdue alerts
+  sendOverdueAlerts: () => api.post('/rentals/send-overdue-alerts'),
 }
 
 // Dashboard API
