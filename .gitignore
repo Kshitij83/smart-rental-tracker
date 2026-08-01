@@ -30,7 +30,7 @@ backend/build
 .env.production.local
 .env.example
 frontend/.env*
-backend/.env*
+backend/app/.env*
 
 # Logs
 logs
@@ -145,3 +145,12 @@ ml/data/
 # FastAPI
 backend/__pycache__/
 backend/*.pyc
+
+# Python Virtual Environments
+venv/
+*/venv/
+backend/venv/
+ml/venv/
+simulator/venv/
+env/
+*/env/

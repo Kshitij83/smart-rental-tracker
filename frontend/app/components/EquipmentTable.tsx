@@ -2,11 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { equipmentApi } from '../lib/api'
+import AddEquipmentModal from './AddEquipmentModal'
 
 interface Equipment {
   id: number
   equipment_id: string
   type: string
+  site_id?: string
+  check_out_date?: string
+  check_in_date?: string
+  engine_hours_per_day?: number
+  idle_hours_per_day?: number
+  operating_days?: number
+  last_operator_id?: string
   model?: string
   manufacturer?: string
   year?: number
@@ -21,21 +29,26 @@ export default function EquipmentTable() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const fetchEquipment = async () => {
+    try {
+      const response = await equipmentApi.getAll()
+      setEquipment(response.data)
+    } catch (error) {
+      console.error('Error fetching equipment:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchEquipment = async () => {
-      try {
-        const response = await equipmentApi.getAll()
-        setEquipment(response.data)
-      } catch (error) {
-        console.error('Error fetching equipment:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchEquipment()
   }, [])
+
+  const handleEquipmentAdded = () => {
+    fetchEquipment() // Refresh the equipment list
+  }
 
   // Filter equipment based on search and filters
   const filteredEquipment = equipment.filter(item => {
@@ -52,22 +65,37 @@ export default function EquipmentTable() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available':
-        return 'bg-green-100 text-green-800'
+        return 'bg-emerald-50 text-emerald-700 ring-emerald-200'
       case 'rented':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 ring-blue-200'
       case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-amber-50 text-amber-700 ring-amber-200'
       case 'retired':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-slate-100 text-slate-600 ring-slate-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-slate-100 text-slate-600 ring-slate-200'
+    }
+  }
+
+  const getStatusDot = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'bg-emerald-500'
+      case 'rented':
+        return 'bg-blue-500'
+      case 'maintenance':
+        return 'bg-amber-500'
+      case 'retired':
+        return 'bg-slate-400'
+      default:
+        return 'bg-slate-400'
     }
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
       </div>
     )
   }
@@ -112,80 +140,82 @@ export default function EquipmentTable() {
       </div>
 
       {/* Equipment Count */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing {filteredEquipment.length} of {equipment.length} equipment items
-          </p>
-          <button className="btn-primary">
-            Add New Equipment
-          </button>
-        </div>
+      <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-between flex-wrap gap-3">
+        <p className="text-sm text-slate-600">
+          Showing{' '}
+          <span className="font-semibold text-slate-900">
+            {filteredEquipment.length}
+          </span>{' '}
+          of{' '}
+          <span className="font-semibold text-slate-900">{equipment.length}</span>{' '}
+          equipment items
+        </p>
+        <button onClick={() => setIsModalOpen(true)} className="btn-primary">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add New Equipment
+        </button>
       </div>
 
       {/* Equipment Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Equipment ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Type
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Site ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Model
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Manufacturer
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Engine Hrs/Day
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Year
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Updated
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-slate-200">
             {filteredEquipment.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
+              <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{item.equipment_id}</div>
+                  <div className="text-sm font-semibold text-slate-900">{item.equipment_id}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item.type}</div>
+                  <div className="text-sm text-slate-700">{item.type}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{item.model || 'N/A'}</div>
+                  <div className="text-sm text-slate-500">{item.site_id || 'N/A'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{item.manufacturer || 'N/A'}</div>
+                  <div className="text-sm text-slate-500">{item.model || 'N/A'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{item.year || 'N/A'}</div>
+                  <div className="text-sm font-medium text-slate-700">{item.engine_hours_per_day || 0}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 ${getStatusColor(item.status)}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(item.status)}`}></span>
                     {item.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(item.updated_at).toLocaleDateString()}
-                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <button className="text-primary-600 hover:text-primary-900">
+                  <div className="flex space-x-3">
+                    <button className="text-amber-600 hover:text-amber-700 font-semibold">
                       Edit
                     </button>
-                    <button className="text-gray-600 hover:text-gray-900">
+                    <button className="text-slate-500 hover:text-slate-700">
                       View
                     </button>
                   </div>
@@ -199,13 +229,13 @@ export default function EquipmentTable() {
       {/* Empty State */}
       {filteredEquipment.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
+          <div className="text-slate-400 mb-4">
             <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <h3 className="text-sm font-medium text-gray-900 mb-2">No equipment found</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-sm font-medium text-slate-900 mb-2">No equipment found</h3>
+          <p className="text-sm text-slate-500">
             {searchTerm || filterType !== 'all' || filterStatus !== 'all'
               ? 'Try adjusting your search or filters'
               : 'No equipment has been added yet'
@@ -217,7 +247,7 @@ export default function EquipmentTable() {
       {/* Pagination */}
       {filteredEquipment.length > 0 && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+          <div className="text-sm text-slate-700">
             Showing <span className="font-medium">1</span> to{' '}
             <span className="font-medium">{filteredEquipment.length}</span> of{' '}
             <span className="font-medium">{equipment.length}</span> results
@@ -232,6 +262,13 @@ export default function EquipmentTable() {
           </div>
         </div>
       )}
+      
+      {/* Add Equipment Modal */}
+      <AddEquipmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleEquipmentAdded}
+      />
     </div>
   )
 }

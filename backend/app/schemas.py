@@ -9,6 +9,13 @@ from typing import Optional, List
 class EquipmentBase(BaseModel):
     equipment_id: str
     type: str
+    site_id: Optional[str] = None
+    check_out_date: Optional[str] = None
+    check_in_date: Optional[str] = None
+    engine_hours_per_day: Optional[float] = 0.0
+    idle_hours_per_day: Optional[float] = 0.0
+    operating_days: Optional[int] = 0
+    last_operator_id: Optional[str] = None
     model: Optional[str] = None
     manufacturer: Optional[str] = None
     year: Optional[int] = None
@@ -22,6 +29,13 @@ class EquipmentCreate(EquipmentBase):
 
 class EquipmentUpdate(BaseModel):
     type: Optional[str] = None
+    site_id: Optional[str] = None
+    check_out_date: Optional[str] = None
+    check_in_date: Optional[str] = None
+    engine_hours_per_day: Optional[float] = None
+    idle_hours_per_day: Optional[float] = None
+    operating_days: Optional[int] = None
+    last_operator_id: Optional[str] = None
     model: Optional[str] = None
     manufacturer: Optional[str] = None
     year: Optional[int] = None
@@ -72,6 +86,14 @@ class OperatorBase(BaseModel):
 
 class OperatorCreate(OperatorBase):
     pass
+
+
+class OperatorUpdate(BaseModel):
+    name: Optional[str] = None
+    license_number: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    certification_level: Optional[str] = None
 
 
 class Operator(OperatorBase):

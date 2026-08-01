@@ -5,9 +5,17 @@ from datetime import datetime, timedelta
 import sys
 import os
 
-# Add the ml directory to the path
-ml_path = os.path.join(os.path.dirname(__file__), '..', '..', 'ml')
-sys.path.append(ml_path)
+# Add the ml directory to the path (search several candidate locations)
+_here = os.path.dirname(os.path.abspath(__file__))
+_candidates = [
+    os.path.join(_here, '..', '..', '..', 'ml'),   # repo root /ml
+    os.path.join(_here, '..', '..', 'ml'),          # backend/ml
+    os.path.join(os.getcwd(), 'ml'),
+]
+for _candidate in _candidates:
+    _candidate = os.path.normpath(_candidate)
+    if os.path.isdir(_candidate) and _candidate not in sys.path:
+        sys.path.append(_candidate)
 
 from app.database import get_db
 from app import crud
@@ -15,25 +23,36 @@ from app import schemas
 
 router = APIRouter(prefix="/ml", tags=["Machine Learning"])
 
-# Import our smart ML system
-try:
-    from smart_ml_system import SmartMLSystem
-    ml_system = SmartMLSystem()
-    ML_MODELS_LOADED = True
-    print("Smart ML system loaded successfully!")
-except Exception as e:
-    print(f"Warning: Smart ML system could not be loaded: {e}")
-    ML_MODELS_LOADED = False
+# Lazy-load the ML system so cold starts that only hit /dashboard stay fast.
+_ml_system = None
+_ml_load_attempted = False
+
+def _get_ml_system():
+    global _ml_system, _ml_load_attempted
+    if _ml_load_attempted:
+        return _ml_system
+    _ml_load_attempted = True
+    try:
+        from smart_ml_system import SmartMLSystem
+        _ml_system = SmartMLSystem()
+        print("Smart ML system loaded successfully!")
+    except Exception as e:
+        print(f"Warning: Smart ML system could not be loaded: {e}")
+        _ml_system = None
+    return _ml_system
+
+def _ml_loaded() -> bool:
+    return _get_ml_system() is not None
 
 @router.get("/status")
 def get_ml_status():
     """Get the status of ML models"""
     return {
-        "models_loaded": ML_MODELS_LOADED,
-        "demand_forecasting": "available" if ML_MODELS_LOADED else "unavailable",
-        "anomaly_detection": "available" if ML_MODELS_LOADED else "unavailable",
-        "recommendations": "available" if ML_MODELS_LOADED else "unavailable",
-        "analytics": "available" if ML_MODELS_LOADED else "unavailable"
+        "models_loaded": _ml_loaded(),
+        "demand_forecasting": "available" if _ml_loaded() else "unavailable",
+        "anomaly_detection": "available" if _ml_loaded() else "unavailable",
+        "recommendations": "available" if _ml_loaded() else "unavailable",
+        "analytics": "available" if _ml_loaded() else "unavailable"
     }
 
 @router.post("/demand-forecast")
@@ -43,7 +62,7 @@ def generate_demand_forecast(
     days_ahead: int = 7
 ):
     """Generate demand forecast for a specific site and equipment type"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -51,7 +70,7 @@ def generate_demand_forecast(
     
     try:
         # Generate forecast using the smart ML system
-        forecast = ml_system.forecast_demand(
+        forecast = _get_ml_system().forecast_demand(
             equipment_type=equipment_type,
             site_id=site_id,
             days_ahead=days_ahead
@@ -74,7 +93,7 @@ def generate_demand_forecast(
 @router.post("/demand-forecast/bulk")
 def generate_bulk_demand_forecast(days_ahead: int = 7):
     """Generate demand forecasts for all equipment types"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -82,7 +101,7 @@ def generate_bulk_demand_forecast(days_ahead: int = 7):
     
     try:
         # Get equipment statistics to predict demand
-        equipment_stats = ml_system.get_equipment_stats()
+        equipment_stats = _get_ml_system().get_equipment_stats()
         
         if 'error' in equipment_stats:
             raise HTTPException(
@@ -92,7 +111,7 @@ def generate_bulk_demand_forecast(days_ahead: int = 7):
         
         forecasts = []
         for equipment_type in equipment_stats['by_equipment_type'].keys():
-            forecast = ml_system.forecast_demand(
+            forecast = _get_ml_system().forecast_demand(
                 equipment_type=equipment_type,
                 days_ahead=days_ahead
             )
@@ -122,7 +141,7 @@ def generate_bulk_demand_forecast(days_ahead: int = 7):
 @router.post("/anomaly-detection")
 def detect_anomalies(equipment_id: str = None):
     """Detect anomalies in equipment usage"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -130,7 +149,7 @@ def detect_anomalies(equipment_id: str = None):
     
     try:
         # Detect anomalies using the smart ML system
-        anomalies = ml_system.detect_anomalies(equipment_id=equipment_id)
+        anomalies = _get_ml_system().detect_anomalies(equipment_id=equipment_id)
         
         if 'error' in anomalies:
             raise HTTPException(
@@ -149,7 +168,7 @@ def detect_anomalies(equipment_id: str = None):
 @router.get("/anomaly-detection/summary")
 def get_anomaly_summary():
     """Get a summary of all detected anomalies"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -157,7 +176,7 @@ def get_anomaly_summary():
     
     try:
         # Get all anomalies
-        anomalies = ml_system.detect_anomalies()
+        anomalies = _get_ml_system().detect_anomalies()
         
         if 'error' in anomalies:
             raise HTTPException(
@@ -180,7 +199,7 @@ def get_anomaly_summary():
 @router.get("/analytics/equipment-stats")
 def get_equipment_statistics():
     """Get comprehensive equipment statistics and analytics"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -188,7 +207,7 @@ def get_equipment_statistics():
     
     try:
         # Get equipment statistics
-        stats = ml_system.get_equipment_stats()
+        stats = _get_ml_system().get_equipment_stats()
         
         if 'error' in stats:
             raise HTTPException(
@@ -207,7 +226,7 @@ def get_equipment_statistics():
 @router.get("/analytics/recommendations")
 def get_recommendations():
     """Get actionable recommendations based on data analysis"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -215,7 +234,7 @@ def get_recommendations():
     
     try:
         # Get recommendations
-        recommendations = ml_system.get_recommendations()
+        recommendations = _get_ml_system().get_recommendations()
         
         if 'error' in recommendations:
             raise HTTPException(
@@ -234,7 +253,7 @@ def get_recommendations():
 @router.get("/analytics/equipment/{equipment_type}/performance")
 def get_equipment_performance(equipment_type: str):
     """Get performance metrics for a specific equipment type"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -242,7 +261,7 @@ def get_equipment_performance(equipment_type: str):
     
     try:
         # Get equipment statistics
-        stats = ml_system.get_equipment_stats()
+        stats = _get_ml_system().get_equipment_stats()
         
         if 'error' in stats:
             raise HTTPException(
@@ -255,7 +274,7 @@ def get_equipment_performance(equipment_type: str):
             equipment_stats = stats['by_equipment_type'][equipment_type]
             
             # Get demand forecast for this equipment type
-            forecast = ml_system.forecast_demand(
+            forecast = _get_ml_system().forecast_demand(
                 equipment_type=equipment_type,
                 days_ahead=30
             )
@@ -281,7 +300,7 @@ def get_equipment_performance(equipment_type: str):
 @router.get("/analytics/site/{site_id}/utilization")
 def get_site_utilization(site_id: str):
     """Get utilization metrics for a specific site"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -289,7 +308,7 @@ def get_site_utilization(site_id: str):
     
     try:
         # Get equipment statistics
-        stats = ml_system.get_equipment_stats()
+        stats = _get_ml_system().get_equipment_stats()
         
         if 'error' in stats:
             raise HTTPException(
@@ -302,7 +321,7 @@ def get_site_utilization(site_id: str):
             site_stats = stats['by_site'][site_id]
             
             # Get demand forecast for this site
-            forecast = ml_system.forecast_demand(
+            forecast = _get_ml_system().forecast_demand(
                 site_id=site_id,
                 days_ahead=30
             )
@@ -328,7 +347,7 @@ def get_site_utilization(site_id: str):
 @router.post("/models/save")
 def save_ml_models():
     """Save the trained ML models to disk"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -336,7 +355,7 @@ def save_ml_models():
     
     try:
         # Save models
-        ml_system.save_models()
+        _get_ml_system().save_models()
         
         return {
             "message": "ML models saved successfully",
@@ -359,7 +378,7 @@ def save_ml_models():
 @router.post("/models/retrain")
 def retrain_ml_models():
     """Retrain the ML models with current data"""
-    if not ML_MODELS_LOADED:
+    if not _ml_loaded():
         raise HTTPException(
             status_code=503, 
             detail="ML system is not available."
@@ -367,9 +386,9 @@ def retrain_ml_models():
     
     try:
         # Retrain models
-        ml_system._train_models()
+        _get_ml_system()._train_models()
         
-        if ml_system.models_trained:
+        if _get_ml_system().models_trained:
             return {
                 "message": "ML models retrained successfully",
                 "models_trained": True,
@@ -390,11 +409,11 @@ def retrain_ml_models():
 @router.get("/health")
 def ml_health_check():
     """Health check for the ML system"""
-    if ML_MODELS_LOADED:
-        model_status = ml_system.get_model_status()
+    if _ml_loaded():
+        model_status = _get_ml_system().get_model_status()
         return {
             "status": "healthy" if model_status["models_trained"] else "unhealthy",
-            "ml_system_available": ML_MODELS_LOADED,
+            "ml_system_available": _ml_loaded(),
             "models_trained": model_status["models_trained"],
             "data_loaded": model_status["data_loaded"],
             "data_records": model_status["data_records"],
@@ -406,7 +425,7 @@ def ml_health_check():
     else:
         return {
             "status": "unhealthy",
-            "ml_system_available": ML_MODELS_LOADED,
+            "ml_system_available": _ml_loaded(),
             "models_trained": False,
             "data_loaded": False,
             "data_records": 0,

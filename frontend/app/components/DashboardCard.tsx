@@ -1,19 +1,22 @@
 import { ReactElement } from 'react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 
 interface DashboardCardProps {
   title: string
   value: string | number
-  icon: ReactElement | string
+  icon: ReactElement
   trend?: string
   trendDirection?: 'up' | 'down'
-  color?: 'blue' | 'green' | 'red' | 'yellow'
+  accent?: string
+  subtitle?: string
 }
 
-const colorClasses = {
-  blue: 'text-blue-600 bg-blue-100',
-  green: 'text-green-600 bg-green-100',
-  red: 'text-red-600 bg-red-100',
-  yellow: 'text-yellow-600 bg-yellow-100',
+const iconChipClasses: Record<string, string> = {
+  blue: 'bg-blue-50 text-blue-600',
+  green: 'bg-emerald-50 text-emerald-600',
+  red: 'bg-red-50 text-red-600',
+  amber: 'bg-amber-50 text-amber-600',
+  purple: 'bg-violet-50 text-violet-600',
 }
 
 export default function DashboardCard({
@@ -22,44 +25,43 @@ export default function DashboardCard({
   icon,
   trend,
   trendDirection,
-  color = 'blue',
+  accent = 'blue',
+  subtitle,
 }: DashboardCardProps) {
-  const renderIcon = () => {
-    if (typeof icon === 'string') {
-      // Handle emoji string
-      return <span className="text-2xl">{icon}</span>
-    } else {
-      // Handle React component
-      const IconComponent = icon as ReactElement
-      return <IconComponent className="w-6 h-6" />
-    }
-  }
-
   return (
-    <div className="card hover:shadow-lg transition-shadow duration-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+    <div className="card group hover:shadow-lg hover:ring-slate-300 transition-all duration-200">
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-slate-500">{title}</p>
+          <p className="text-3xl font-bold text-slate-900 mt-2 tracking-tight">
+            {value}
+          </p>
+          {subtitle && (
+            <p className="mt-1 text-xs text-slate-400">{subtitle}</p>
+          )}
           {trend && (
-            <div className="flex items-center mt-2">
-              {trendDirection === 'up' ? (
-                <span className="text-green-500 mr-1 text-lg">↑</span>
-              ) : (
-                <span className="text-red-500 mr-1 text-lg">↓</span>
-              )}
+            <div className="flex items-center gap-1 mt-3">
               <span
-                className={`text-sm font-medium ${
-                  trendDirection === 'up' ? 'text-green-600' : 'text-red-600'
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  trendDirection === 'up'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-red-50 text-red-700'
                 }`}
               >
+                {trendDirection === 'up' ? (
+                  <TrendingUp className="w-3.5 h-3.5" />
+                ) : (
+                  <TrendingDown className="w-3.5 h-3.5" />
+                )}
                 {trend}
               </span>
             </div>
           )}
         </div>
-        <div className={`p-3 rounded-full ${colorClasses[color]}`}>
-          {renderIcon()}
+        <div
+          className={`stat-icon shrink-0 ${iconChipClasses[accent] || iconChipClasses.blue}`}
+        >
+          {icon}
         </div>
       </div>
     </div>

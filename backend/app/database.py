@@ -2,23 +2,32 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+import shutil
 
-# Database URL - using SQLite for development
-SQLALCHEMY_DATABASE_URL = "sqlite:///./rental.db"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+bundle_db = os.path.join(current_dir, "rental.db")
 
-# Create engine
+db_path = os.environ.get("RENTAL_DB_PATH", bundle_db)
+
+if db_path != bundle_db and os.path.exists(bundle_db) and not os.path.exists(db_path):
+    try:
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        shutil.copy(bundle_db, db_path)
+        print(f"Copied bundled database to {db_path}")
+    except Exception as e:
+        print(f"Could not copy database to {db_path}: {e}")
+
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{db_path}"
+
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False}  # needed for SQLite
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False}
 )
 
-# Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create Base class
 Base = declarative_base()
 
-# Dependency to get database session
 def get_db():
     db = SessionLocal()
     try:
