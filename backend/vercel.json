@@ -1,0 +1,18 @@
+{
+  "env": {
+    "RENTAL_DB_PATH": "/tmp/rental.db",
+    "CORS_ORIGINS": "*"
+  },
+  "functions": {
+    "api/index.py": {
+      "runtime": "@vercel/python@6.54.1",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
+  ]
+}

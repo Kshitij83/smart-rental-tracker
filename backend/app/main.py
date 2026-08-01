@@ -17,8 +17,11 @@ from app.routers import ml_integration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
+# Create database tables (best-effort; on serverless the DB may be on a read-only FS)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    logger.warning(f"Could not create database tables: {e}")
 
 # Global variable to control scheduler
 scheduler_thread = None
@@ -83,6 +86,11 @@ app = FastAPI(
 async def startup_event():
     """Start the notification scheduler when the server starts"""
     global scheduler_thread
+
+    if os.environ.get("VERCEL") == "1":
+        logger.info("Running on Vercel - notification scheduler disabled.")
+        return
+
     logger.info("🚀 Starting Smart Rental Tracker with automatic email notifications...")
     
     # Start the scheduler in a background thread
@@ -103,10 +111,13 @@ async def shutdown_event():
     logger.info("✅ Notification scheduler stopped")
 
 # Add CORS middleware
+cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
+if not cors_origins:
+    cors_origins = ["http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials="*" not in cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
